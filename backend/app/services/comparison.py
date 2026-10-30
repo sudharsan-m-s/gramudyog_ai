@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 
-from app.repositories.demo import CATEGORIES, DEMO_DISTRICT
+from app.repositories.demo import CATEGORIES, DEMO_REGIONS
 from app.schemas.assessment import AssessmentInput, Category
 
 
@@ -26,7 +26,9 @@ class ComparisonResult(BaseModel):
 def compare(payload: ComparisonInput) -> ComparisonResult:
     if len(set(payload.categories)) != len(payload.categories):
         raise ValueError("Categories must be distinct")
-    supported = payload.assessment.district.casefold() == DEMO_DISTRICT
+    region = DEMO_REGIONS.get(payload.assessment.district.casefold())
+    supported = bool(region and payload.assessment.block.casefold() == region[0].casefold()
+                     and payload.assessment.village.casefold() == region[1].casefold())
     rows = [
         ComparisonRow(
             category=category,

@@ -100,7 +100,7 @@ Frontend dependencies are locked after installation. Backend ranges should be lo
 
 Only example environment files are tracked. No personal data or identity documents are collected.
 CORS permits local origins; it is not authorization. No officer write endpoints exist yet.
-The intake flow has English and Tamil labels; evidence, finance, and officer sections are currently English. Voice capture is a browser-only enhancement with typed fallback; speech support was not browser-tested. Leaflet is installed, but there is no map because coordinates and competitor locations are unavailable.
+The entrepreneur and officer interfaces support English and Tamil; user-entered notes remain in the language in which they were written. Voice capture is a browser-only enhancement with typed fallback; speech support was not browser-tested. Leaflet is installed, but there is no map because coordinates and competitor locations are unavailable.
 No AI provider is called. Synthetic market prompts are labelled sample with unavailable observation dates. Finance uses user assumptions and versioned prototype defaults, never a sanction.
 See docs/IMPLEMENTATION_PLAN.md for the remaining scope.
 
@@ -129,3 +129,15 @@ The review event is append-only. The saved assessment remains the original input
   Avoid entering sensitive information. Production access control is still required.
 - Browser, mobile device, screen reader, voice-language, Docker and PostGIS runtime checks
   were not available in this environment.
+
+
+## Five-region seasonal demo
+
+The intake dropdown selects one of Sulur (Coimbatore), Palladam (Tiruppur), Perundurai
+(Erode), Omalur (Salem), or Melur (Madurai). Location names are demonstration selections,
+not verified 5–10 km observations. Seasonal indices are invented scenario values, not
+observed sales or rainfall data; the IMD reference explains the general Tamil Nadu
+northeast monsoon context, not these numbers. Observation dates are unavailable.
+English and Tamil interface labels, demo evidence, financial explanations, and draft-report labels are available; user-entered notes are not translated automatically.
+
+Location and common amount choices use dropdowns. Presets limit precision; officer identity and field notes still require text entry. Demo coverage requires the matching district, block, and locality.

@@ -24,7 +24,7 @@ export const categories: { value: Category; en: string; ta: string }[] = [
   { value: 'retail', en: 'Small retail', ta: 'சிறு விற்பனை' },
 ]
 
-export const copy = {
+const translations = {
   en: {
     home: 'Business starts with clarity.', subtitle: 'Explore your business idea with a clear view of the information available.',
     start: 'Start an assessment', language: 'Choose language', next: 'Continue', back: 'Back',
@@ -54,3 +54,5 @@ export const copy = {
     select: 'தொழில் வகையைத் தேர்ந்தெடுக்கவும்.', loading: 'ஆதாரங்களைச் சரிபார்க்கிறது…', notSaved: 'இந்த முன்னோட்டம் சேமிக்கப்படவில்லை.',
   },
 } as const
+
+export const copy = translations

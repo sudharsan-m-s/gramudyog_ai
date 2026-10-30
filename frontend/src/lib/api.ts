@@ -27,6 +27,9 @@ export interface EvidenceResponse {
   competitor_density: MarketItem
   pricing: MarketItem
   note: string
+  seasonality: number[]
+  seasonality_source: string
+  seasonality_status: string
 }
 export interface FinanceInput {
   project_cost: string

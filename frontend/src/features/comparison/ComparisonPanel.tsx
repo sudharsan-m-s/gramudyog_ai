@@ -1,3 +1,5 @@
+import { translate } from '../../lib/translations'
+import { translateEvidence } from '../evidence/evidenceTranslations'
 import { useState } from 'react'
 import type { AssessmentDraft, Category } from '../intake/model'
 import { categories } from '../intake/model'
@@ -24,29 +26,29 @@ export function ComparisonPanel({ draft }: { draft: AssessmentDraft }) {
       if (!response.ok) throw new Error('Comparison failed')
       const body = await response.json() as { rows: Row[] }
       setRows(body.rows)
-    } catch { setError('Could not compare. Check the connection and retry.') }
+    } catch { setError(translate(draft.language, "Could not compare. Check the connection and retry.")) }
     finally { setBusy(false) }
   }
   return <section className="mt-8 border-t border-stone-200 pt-7">
-    <h3 className="text-xl font-semibold">Compare business categories</h3>
-    <p className="mt-2 text-sm text-stone-600">Choose up to three for the same location and margin. Costs require your assumptions.</p>
+    <h3 className="text-xl font-semibold">{translate(draft.language, "Compare business categories")}</h3>
+    <p className="mt-2 text-sm text-stone-600">{translate(draft.language, "Choose up to three for the same location and margin. Costs require your assumptions.")}</p>
     <div className="mt-4 grid gap-2 sm:grid-cols-2">{categories.map(category =>
       <label key={category.value} className="flex min-h-12 items-center gap-3 rounded-xl border border-stone-200 p-3">
         <input type="checkbox" checked={selected.includes(category.value)}
           disabled={!selected.includes(category.value) && selected.length >= 3}
           onChange={() => toggle(category.value)} />{category[draft.language]}
       </label>)}</div>
-    <button type="button" className="primary mt-4" disabled={!selected.length || busy} onClick={compare}>{busy ? 'Comparing…' : 'Compare selected'}</button>
+    <button type="button" className="primary mt-4" disabled={!selected.length || busy} onClick={compare}>{busy ? translate(draft.language, "Comparing\u2026") : translate(draft.language, "Compare selected")}</button>
     {error && <p role="alert" className="field-error mt-3">{error}</p>}
     {rows.length > 0 && <>
-      <p className="mt-5 text-sm">Qualitative sample prompts only. No ranking or predicted success.</p>
+      <p className="mt-5 text-sm">{translate(draft.language, "Qualitative sample prompts only. No ranking or predicted success.")}</p>
       <div className="mt-3 grid gap-3 lg:grid-cols-3">{rows.map(row =>
         <article key={row.category} className="rounded-xl border border-stone-200 p-4 text-sm">
           <h4 className="font-semibold">{categories.find(item => item.value === row.category)?.[draft.language]}</h4>
-          <p className="mt-2">Data: {row.data_status} · Costs: {row.cost_status}</p>
-          <p className="mt-3 font-semibold">Channels to check</p><p>{row.channels.join(', ') || 'Unavailable'}</p>
-          <p className="mt-3 font-semibold">Risks to check</p><p>{row.risks.join(', ') || 'Unavailable'}</p>
-          <p className="mt-3 text-xs text-stone-600">{row.note}</p>
+          <p className="mt-2">{translate(draft.language, "Data")}: {translate(draft.language, row.data_status)} · {translate(draft.language, "Costs")}: {translate(draft.language, row.cost_status)}</p>
+          <p className="mt-3 font-semibold">{translate(draft.language, "Channels to check")}</p><p>{row.channels.map(item => draft.language === 'ta' ? translateEvidence(item) : item).join(', ') || translate(draft.language, "Unavailable")}</p>
+          <p className="mt-3 font-semibold">{translate(draft.language, "Risks to check")}</p><p>{row.risks.map(item => draft.language === 'ta' ? translateEvidence(item) : item).join(', ') || translate(draft.language, "Unavailable")}</p>
+          <p className="mt-3 text-xs text-stone-600">{translate(draft.language, row.note)}</p>
         </article>)}</div>
     </>}
   </section>

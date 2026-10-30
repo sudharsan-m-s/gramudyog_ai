@@ -1,16 +1,24 @@
-import { useState, type FormEvent } from 'react'
+import { translate } from '../lib/translations'
+import { useEffect, useState, type FormEvent } from 'react'
 import { previewAssessment, loadEvidence, type EvidenceResponse, type FinanceResult } from '../lib/api'
 import { EvidencePanel } from '../features/evidence/EvidencePanel'
 import { FinancePanel } from '../features/finance/FinancePanel'
 import { ComparisonPanel } from '../features/comparison/ComparisonPanel'
 import { DraftReport } from '../features/report/DraftReport'
 import { SaveAndReview } from '../features/officer/SaveAndReview'
-import { VoiceInput } from '../features/voice/VoiceInput'
 import { categories, copy, type AssessmentDraft, type AssessmentPreview, type Language } from '../features/intake/model'
 
 const initial: AssessmentDraft = {
   language: 'en', village: '', block: '', district: '', margin_capital: '', category: '', radius_km: 5,
 }
+
+const regions = [
+  { village: 'Sulur', block: 'Sulur', district: 'Coimbatore' },
+  { village: 'Palladam', block: 'Palladam', district: 'Tiruppur' },
+  { village: 'Perundurai', block: 'Perundurai', district: 'Erode' },
+  { village: 'Omalur', block: 'Omalur', district: 'Salem' },
+  { village: 'Melur', block: 'Melur', district: 'Madurai' },
+]
 
 type Step = 'welcome' | 'details' | 'confirm' | 'evidence'
 
@@ -29,6 +37,7 @@ export default function App() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [requestState, setRequestState] = useState<'idle' | 'loading' | 'error'>('idle')
   const t = copy[draft.language]
+  useEffect(() => { document.documentElement.lang = draft.language }, [draft.language])
 
   function update<K extends keyof AssessmentDraft>(key: K, value: AssessmentDraft[K]) {
     setDraft(previous => ({ ...previous, [key]: value }))
@@ -77,18 +86,24 @@ export default function App() {
   const field = (key: 'village' | 'block' | 'district', labelText: string) => (
     <div>
       <label htmlFor={key} className="label">{labelText}</label>
-      <input id={key} name={key} value={draft[key]} maxLength={120} required
+      <select id={key} name={key} value={draft[key]} required
         aria-invalid={Boolean(errors[key])} aria-describedby={errors[key] ? key + '-error' : undefined}
-        onChange={event => update(key, event.target.value)} className="input" autoComplete="off" />
+        onChange={event => {
+          const region = regions.find(item => item[key] === event.target.value)
+          if (region) { setDraft(previous => ({ ...previous, ...region })); setErrors({}); setPreview(null); setEvidence(null); setFinance(null) }
+        }} className="input">
+        <option value="">{translate(draft.language, "-- Select --")}</option>
+        {regions.map(region => <option key={region.district} value={region[key]}>{translate(draft.language, region[key])}</option>)}
+      </select>
       {errors[key] && <p id={key + '-error'} className="field-error">{errors[key]}</p>}
     </div>
   )
 
   return (
     <>
-      <a className="skip-link" href="#main">Skip to content</a>
+      <a className="skip-link" href="#main">{translate(draft.language, "Skip to content")}</a>
       <header className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-5 py-5 sm:px-8">
-        <a href="/" className="text-xl font-bold tracking-tight" aria-label="GramUdyog AI home">GramUdyog<span className="text-emerald-700">.AI</span></a>
+        <a href="/" className="text-xl font-bold tracking-tight" aria-label={draft.language === 'ta' ? 'GramUdyog AI முகப்பு' : 'GramUdyog AI home'}>GramUdyog<span className="text-emerald-700">.AI</span></a>
         <span className="rounded-full border border-emerald-900/15 px-3 py-1 text-xs font-semibold">SIH26091 · MVP</span>
       </header>
       <main id="main" className="mx-auto max-w-5xl px-5 pb-20 pt-8 sm:px-8 sm:pt-14">
@@ -98,11 +113,11 @@ export default function App() {
             <h1 className="text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">{t.home}</h1>
             <p className="mt-4 max-w-xl text-base leading-relaxed text-stone-600">{t.subtitle}</p>
             {step !== 'welcome' && (
-              <ol className="mt-9 flex gap-2" aria-label="Assessment progress">
+              <ol className="mt-9 flex gap-2" aria-label={draft.language === 'ta' ? 'மதிப்பீட்டு முன்னேற்றம்' : 'Assessment progress'}>
                 {['details', 'confirm', 'evidence'].map((item, index) => (
                   <li key={item} className={'h-1.5 flex-1 rounded-full ' + (
                     ['details', 'confirm', 'evidence'].indexOf(step) >= index ? 'bg-emerald-800' : 'bg-stone-200'
-                  )}><span className="sr-only">Step {index + 1}: {item}</span></li>
+                  )}><span className="sr-only">{draft.language === 'ta' ? 'படி' : 'Step'} {index + 1}: {translate(draft.language, item)}</span></li>
                 ))}
               </ol>
             )}
@@ -125,14 +140,17 @@ export default function App() {
                 <p className="mt-2 text-sm text-stone-600">{t.location}</p>
                 <form onSubmit={submitDetails} noValidate className="mt-6 space-y-5">
                   {field('village', t.village)}
-                  <VoiceInput language={draft.language} onValue={value => update('village', value)} />
+                  
                   <div className="grid gap-5 sm:grid-cols-2">{field('block', t.block)}{field('district', t.district)}</div>
                   <div>
                     <label htmlFor="margin_capital" className="label">{t.margin}</label>
-                    <input id="margin_capital" type="number" inputMode="decimal" min="0.01" max="5000000" step="0.01"
-                      value={draft.margin_capital} onChange={event => update('margin_capital', event.target.value)}
+                    <select id="margin_capital" value={draft.margin_capital} onChange={event => update('margin_capital', event.target.value)}
                       aria-invalid={Boolean(errors.margin_capital)} aria-describedby={errors.margin_capital ? 'capital-error' : undefined}
-                      className="input" required />
+                      className="input" required>
+                      <option value="">{translate(draft.language, "Select available capital")}</option>
+                      {[5000,10000,15000,20000,25000,50000,75000,100000,150000,200000,300000,500000,1000000,2000000,5000000].map(value =>
+                        <option key={value} value={value}>{formatMoney(String(value), draft.language)}</option>)}
+                    </select>
                     {errors.margin_capital && <p id="capital-error" className="field-error">{errors.margin_capital}</p>}
                   </div>
                   <div>
@@ -161,7 +179,7 @@ export default function App() {
               {step === 'confirm' && <>
                 <h2 className="text-2xl font-semibold">{t.confirm}</h2>
                 <dl className="mt-6 divide-y divide-stone-100">
-                  {[[t.village, draft.village], [t.block, draft.block], [t.district, draft.district],
+                  {[[t.village, translate(draft.language, draft.village)], [t.block, translate(draft.language, draft.block)], [t.district, translate(draft.language, draft.district)],
                     [t.margin, formatMoney(draft.margin_capital, draft.language)], [t.category, label],
                     [t.radius, draft.radius_km + ' km']].map(([name, value]) => (
                       <div key={name} className="flex justify-between gap-4 py-3 text-sm">
@@ -178,16 +196,16 @@ export default function App() {
                 </div>
               </>}
               {step === 'evidence' && preview && <>
-                <p className="text-xs font-bold uppercase tracking-widest text-amber-700">{t.evidence} · {evidence?.coverage ?? preview.evidence_status}</p>
-                <h2 className="mt-3 text-2xl font-semibold">{evidence?.coverage === "sample" ? "Sample prompts for field checks" : t.unavailable}</h2>
-                <p className="mt-4 leading-relaxed text-stone-600">{evidence?.coverage === "sample" ? "Synthetic demonstration only. Customer counts, competitors, and local prices remain unavailable. Verify these prompts in the field." : t.caveat}</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-amber-700">{t.evidence} · {translate(draft.language, evidence?.coverage ?? preview.evidence_status)}</p>
+                <h2 className="mt-3 text-2xl font-semibold">{evidence?.coverage === "sample" ? translate(draft.language, "Sample prompts for field checks") : t.unavailable}</h2>
+                <p className="mt-4 leading-relaxed text-stone-600">{evidence?.coverage === "sample" ? translate(draft.language, "Synthetic demonstration only. Customer counts, competitors, and local prices remain unavailable. Verify these prompts in the field.") : t.caveat}</p>
                 <div className="mt-6 rounded-xl bg-stone-50 p-4 text-sm">
-                  <p><strong>{t.location}:</strong> {preview.input.village}, {preview.input.block}, {preview.input.district} ({preview.input.radius_km} km)</p>
+                  <p><strong>{t.location}:</strong> {translate(draft.language, preview.input.village)}, {translate(draft.language, preview.input.block)}, {translate(draft.language, preview.input.district)} ({preview.input.radius_km} km)</p>
                   <p className="mt-2"><strong>{t.category}:</strong> {label}</p>
                   <p className="mt-2"><strong>{t.margin}:</strong> {formatMoney(String(preview.input.margin_capital), draft.language)}</p>
                 </div>
-                {evidence && <EvidencePanel evidence={evidence} />}
-                <FinancePanel key={draft.margin_capital + draft.category} margin={draft.margin_capital} onResult={setFinance} />
+                {evidence && <EvidencePanel evidence={evidence} language={draft.language} />}
+                <FinancePanel key={draft.margin_capital + draft.category} margin={draft.margin_capital} onResult={setFinance} language={draft.language} />
                 <ComparisonPanel key={draft.category} draft={draft} />
                 {evidence && <DraftReport draft={draft} evidence={evidence} finance={finance} />}
                 <SaveAndReview draft={draft} />
@@ -196,15 +214,15 @@ export default function App() {
               </>}
             </section>
           </div>
-          <aside className="self-start rounded-3xl bg-emerald-950 p-7 text-white lg:mt-16" aria-label="Prototype limitations">
-            <p className="text-xs font-bold uppercase tracking-widest text-emerald-200">About this prototype</p>
-            <h2 className="mt-5 text-2xl font-semibold">Evidence you can inspect.</h2>
-            <p className="mt-4 text-sm leading-relaxed text-emerald-100/80">Your location and budget are checked before an assessment. Market observations, financial planning, and draft reports will be added in the next levels.</p>
-            <p className="mt-8 border-t border-emerald-800 pt-6 text-xs leading-relaxed text-emerald-100/70">No live market data or loan approval is provided. Your entries are sent to the local API for validation when you confirm; they are not saved at this stage.</p>
+          <aside className="self-start rounded-3xl bg-emerald-950 p-7 text-white lg:mt-16" aria-label={draft.language === 'ta' ? 'மாதிரியின் வரம்புகள்' : 'Prototype limitations'}>
+            <p className="text-xs font-bold uppercase tracking-widest text-emerald-200">{translate(draft.language, "About this prototype")}</p>
+            <h2 className="mt-5 text-2xl font-semibold">{translate(draft.language, "Evidence you can inspect.")}</h2>
+            <p className="mt-4 text-sm leading-relaxed text-emerald-100/80">{translate(draft.language, "Your location and budget are checked before an assessment. Explore sample market prompts, financial scenarios, and a draft report.")}</p>
+            <p className="mt-8 border-t border-emerald-800 pt-6 text-xs leading-relaxed text-emerald-100/70">{translate(draft.language, "No live market data or loan approval is provided. Your entries are sent to the local API for validation when you confirm; they are only saved when you choose Save assessment.")}</p>
           </aside>
         </div>
       </main>
-      <footer className="mx-auto max-w-5xl px-5 pb-8 text-xs text-stone-600 sm:px-8">GramUdyog.AI · SIH26091 · Intake prototype</footer>
+      <footer className="mx-auto max-w-5xl px-5 pb-8 text-xs text-stone-600 sm:px-8">GramUdyog.AI · SIH26091 · {draft.language === 'ta' ? 'மாதிரி செயலி' : 'Intake prototype'}</footer>
     </>
   )
 }

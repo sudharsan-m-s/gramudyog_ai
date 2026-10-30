@@ -1,6 +1,23 @@
 """Explicitly synthetic teaching data, not observed market facts."""
 
 DEMO_DISTRICT = "coimbatore"
+DEMO_REGIONS = {
+    "coimbatore": ("Sulur", "Sulur"),
+    "tiruppur": ("Palladam", "Palladam"),
+    "erode": ("Perundurai", "Perundurai"),
+    "salem": ("Omalur", "Omalur"),
+    "madurai": ("Melur", "Melur"),
+}
+# Synthetic scenario indices: illustrative seasonal variation, not rainfall or sales observations.
+SEASONALITY = {
+    "coimbatore": [85, 85, 90, 95, 100, 95, 90, 90, 95, 115, 120, 110],
+    "tiruppur": [90, 85, 90, 95, 95, 90, 90, 95, 100, 110, 120, 115],
+    "erode": [85, 85, 90, 95, 100, 95, 90, 90, 100, 115, 120, 110],
+    "salem": [90, 85, 90, 95, 100, 100, 95, 95, 100, 110, 115, 110],
+    "madurai": [90, 85, 90, 95, 100, 90, 85, 90, 95, 115, 120, 110],
+}
+SEASON_SOURCE = "Synthetic scenarios informed by IMD Tamil Nadu northeast monsoon overview: https://mausam.imd.gov.in/chennai/mcdata/ne_monsoon_2024.pdf"
+
 DEMO_SOURCE = "GramUdyog.AI synthetic demonstration dataset"
 CATEGORIES = {
     "food_processing": {
