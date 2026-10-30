@@ -1,8 +1,10 @@
 # Database migration status
 
-001_initial_postgres.sql defines the intended PostgreSQL/PostGIS schema and constraints.
-It has not been applied in this environment, and the API does not use it yet.
-The current local adapter uses SQLite for saved assessment inputs and append-only review
-events. A PostgreSQL repository implementation and tested migration runner are needed
-before production use. PostGIS locations have nullable geometry until coordinates are
-verified; no fake points are seeded.
+The deployed application can use the PostgreSQL repository when DATABASE_URL or
+POSTGRES_URL is configured. It creates three app-prefixed storage tables and indexes
+on first use. This path has been tested with a connection double, not a live PostgreSQL
+instance. Local development without a database URL continues to use SQLite.
+
+001_initial_postgres.sql is a separate planned geospatial schema. It is not executed
+by the current adapter and PostGIS location queries are not implemented. No fake
+geocoded points are seeded.

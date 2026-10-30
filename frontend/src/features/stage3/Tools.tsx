@@ -1,10 +1,10 @@
 import { translate } from '../../lib/translations'
 import { HISTORY_KEY } from './history'
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import type { AssessmentDraft } from '../intake/model'
 import type { FinanceInput } from '../../lib/api'
 
-const base = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000/api/v1'
+const base = import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.PROD ? '/api/v1' : 'http://127.0.0.1:8000/api/v1')
 const rupees = (value: string | number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(Number(value))
 type Lang = 'en' | 'ta'
 const label = (lang: Lang, en: string, ta: string) => lang === 'ta' ? ta : en
@@ -104,20 +104,62 @@ export function BreakEven({ language, debtPayment }: { language: Lang; debtPayme
 
 export function AudioGuide({ language, summary }: { language: Lang; summary?: string }) {
   const [message, setMessage] = useState('')
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
+
+  useEffect(() => {
+    if (!('speechSynthesis' in window)) return
+    const synth = window.speechSynthesis
+    const refreshVoices = () => setVoices(synth.getVoices())
+    refreshVoices()
+    synth.addEventListener('voiceschanged', refreshVoices)
+    return () => { synth.removeEventListener('voiceschanged', refreshVoices); synth.cancel() }
+  }, [])
+
   function speak() {
-    if (!('speechSynthesis' in window)) { setMessage(label(language,'Speech is unavailable in this browser.','இந்த உலாவியில் குரல் வசதி இல்லை.')); return }
-    const voices = window.speechSynthesis.getVoices()
-    const preferred = voices.find(voice => voice.lang.toLowerCase().startsWith(language === 'ta' ? 'ta' : 'en'))
-    if (!preferred) { setMessage(label(language,'A matching voice is not available yet. Use the visible text.','தமிழ் குரல் கிடைக்கவில்லை. திரையில் உள்ள உரையைப் பயன்படுத்தவும்.')); return }
-    window.speechSynthesis.cancel()
-    const text = label(language, 'Choose your location, capital and business. Review the sample evidence, check your assumptions, and save the assessment.', 'உங்கள் இடம், முதலீடு மற்றும் தொழிலைத் தேர்வு செய்யுங்கள். மாதிரித் தகவல்களைப் பாருங்கள். உங்கள் மதிப்பீடுகளைச் சரிபார்த்து மதிப்பீட்டைச் சேமிக்கவும்.')
+    if (!('speechSynthesis' in window)) {
+      setMessage(label(language, 'Speech is unavailable in this browser.', 'இந்த உலாவியில் குரல் வசதி இல்லை.'))
+      return
+    }
+    const synth = window.speechSynthesis
+    // Some browsers fill the voice list after page load and emit voiceschanged.
+    const available = synth.getVoices()
+    const preferred = (available.length ? available : voices).find(
+      voice => voice.lang.toLowerCase().startsWith(language === 'ta' ? 'ta' : 'en'),
+    )
+    if (!preferred) {
+      setMessage(label(language,
+        'No English voice is available yet. Check device speech settings and try again.',
+        'தமிழ் குரல் கிடைக்கவில்லை. சாதனத்தின் குரல் அமைப்புகளில் தமிழ் குரலைச் சேர்த்து மீண்டும் முயற்சிக்கவும்.'))
+      return
+    }
+    synth.cancel()
+    const text = label(language,
+      'Choose your location, capital and business. Review the sample evidence, check your assumptions, and save the assessment.',
+      'உங்கள் இடம், முதலீடு மற்றும் தொழிலைத் தேர்வு செய்யுங்கள். மாதிரித் தகவல்களைப் பாருங்கள். உங்கள் மதிப்பீடுகளைச் சரிபார்த்து சேமிக்கவும்.')
     const utterance = new SpeechSynthesisUtterance(summary ?? text)
     utterance.voice = preferred
     utterance.lang = preferred.lang
-    utterance.onerror = () => setMessage(label(language, 'Audio could not play. Use the visible text.', 'ஒலியை இயக்க முடியவில்லை. திரையில் உள்ள உரையைப் பயன்படுத்தவும்.'))
-    window.speechSynthesis.speak(utterance); setMessage(label(language,'Playing guidance.','வழிகாட்டுதல் ஒலிக்கிறது.'))
+    utterance.onstart = () => setMessage(label(language, 'Playing guidance.', 'வழிகாட்டுதல் ஒலிக்கிறது.'))
+    utterance.onend = () => setMessage(label(language, 'Guidance finished.', 'வழிகாட்டுதல் முடிந்தது.'))
+    utterance.onerror = event => { if (event.error !== 'interrupted' && event.error !== 'canceled') setMessage(label(language, 'Audio could not play. Check device sound and speech settings.', 'ஒலியை இயக்க முடியவில்லை. சாதனத்தின் ஒலி மற்றும் குரல் அமைப்புகளைச் சரிபார்க்கவும்.')) }
+    try {
+      synth.speak(utterance)
+      setMessage(label(language, 'Starting audio…', 'ஒலி தொடங்குகிறது…'))
+    } catch {
+      setMessage(label(language, 'Audio could not play. Check device sound and speech settings.', 'ஒலியை இயக்க முடியவில்லை. சாதனத்தின் ஒலி மற்றும் குரல் அமைப்புகளைச் சரிபார்க்கவும்.'))
+    }
   }
-  return <div className="mt-5 flex flex-wrap items-center gap-3"><button className="secondary text-sm" type="button" onClick={speak}>{label(language,'Listen to guidance','வழிகாட்டுதலைக் கேளுங்கள்')}</button><button className="secondary text-sm" type="button" onClick={() => window.speechSynthesis?.cancel()}>{label(language,'Stop audio','ஒலியை நிறுத்தவும்')}</button><span role="status" className="text-xs">{message}</span></div>
+
+  function stop() {
+    window.speechSynthesis?.cancel()
+    setMessage(label(language, 'Audio stopped.', 'ஒலி நிறுத்தப்பட்டது.'))
+  }
+
+  return <div className="mt-5 flex flex-wrap items-center gap-3">
+    <button className="secondary text-sm" type="button" onClick={speak}>{label(language,'Listen to guidance','வழிகாட்டுதலைக் கேளுங்கள்')}</button>
+    <button className="secondary text-sm" type="button" onClick={stop}>{label(language,'Stop audio','ஒலியை நிறுத்தவும்')}</button>
+    <span role="status" aria-live="polite" className="text-xs">{message}</span>
+  </div>
 }
 
 export type SavedAssessment = { id: string; created_at: string; payload: { assessment: AssessmentDraft; finance?: FinanceInput | null } }

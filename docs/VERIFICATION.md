@@ -82,3 +82,15 @@ python -m pip --python backend/.venv/Scripts/python.exe install -e "./backend[de
   message was checked; actual Tamil speech playback remains unverified.
 - Tests used a separate temporary SQLite database. The existing service on port
   5173 and the user's saved assessments were not changed.
+
+
+## Durable-storage and audio update
+
+- PostgreSQL repository routing, schema setup and audit queries were exercised
+  with an isolated SQLite-backed connection double; an actual PostgreSQL service
+  was not available for integration testing.
+- A failed PostgreSQL connection returns a generic 503 and never falls back to
+  ephemeral SQLite in Vercel. The frontend reports storage unavailability.
+- A headless browser test simulated a Tamil voice loading after the page loaded,
+  verified the missing-voice message, and checked the storage-unavailable banner.
+  No real Tamil voice was installed, so audible playback remains device-dependent.

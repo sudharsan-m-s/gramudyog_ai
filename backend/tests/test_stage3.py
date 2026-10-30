@@ -66,3 +66,17 @@ def test_observation_requires_officer_and_preserves_evidence(tmp_path, monkeypat
     assert history[0]["source"] == "Field visit"
     assert history[0]["reviewer"] == "Field officer"
     assert history[0]["observed_on"] == observation["observed_on"]
+def test_cloud_saving_fails_closed_without_persistent_storage(monkeypatch):
+    monkeypatch.setenv("VERCEL", "1")
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+
+    client = TestClient(app)
+    payload = {"assessment": {
+        "language": "en", "village": "Sulur", "block": "Sulur", "district": "Coimbatore",
+        "margin_capital": "15000", "category": "tailoring", "radius_km": 5,
+    }}
+    response = client.post("/api/v1/assessments", json=payload)
+    assert response.status_code == 503
+    assert "Persistent storage" in response.json()["detail"]

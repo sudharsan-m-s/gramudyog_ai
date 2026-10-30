@@ -2,6 +2,7 @@ import json
 from datetime import UTC, datetime
 from uuid import uuid4
 
+from app.repositories import postgres_store
 from app.repositories.local_store import connection
 
 
@@ -15,6 +16,8 @@ def ensure_schema(db):
 
 
 def add_observation(assessment_id: str, data: dict) -> dict:
+    if postgres_store.database_url():
+        return postgres_store.add_observation(assessment_id, data)
     event = {
         "id": str(uuid4()), "assessment_id": assessment_id,
         "recorded_at": datetime.now(UTC).isoformat(),
@@ -30,6 +33,8 @@ def add_observation(assessment_id: str, data: dict) -> dict:
 
 
 def observations(assessment_id: str) -> list[dict]:
+    if postgres_store.database_url():
+        return postgres_store.observations(assessment_id)
     with connection() as db:
         ensure_schema(db)
         rows = db.execute(

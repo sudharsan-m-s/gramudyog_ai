@@ -5,7 +5,7 @@ import type { AssessmentDraft, Category } from '../intake/model'
 import { categories } from '../intake/model'
 
 interface Row { category: Category; data_status: string; cost_status: string; channels: string[]; risks: string[]; note: string }
-const base = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000/api/v1'
+const base = import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.PROD ? '/api/v1' : 'http://127.0.0.1:8000/api/v1')
 
 export function ComparisonPanel({ draft }: { draft: AssessmentDraft }) {
   const [selected, setSelected] = useState<Category[]>(draft.category ? [draft.category] : [])

@@ -5,7 +5,7 @@ import { useState } from 'react'
 import type { AssessmentDraft } from '../intake/model'
 import type { FinanceResult } from '../../lib/api'
 
-const base = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000/api/v1'
+const base = import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.PROD ? '/api/v1' : 'http://127.0.0.1:8000/api/v1')
 
 export function SaveAndReview({ draft, finance }: { draft: AssessmentDraft; finance: FinanceResult | null }) {
   const [id, setId] = useState('')
@@ -23,10 +23,12 @@ export function SaveAndReview({ draft, finance }: { draft: AssessmentDraft; fina
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ assessment: draft, finance: finance?.inputs ?? null }), signal: AbortSignal.timeout(10000),
       })
-      if (!response.ok) throw new Error('Save failed')
+      if (!response.ok) throw new Error(response.status === 503
+        ? (draft.language === 'ta' ? 'நிரந்தர சேமிப்பு கிடைக்கவில்லை. பின்னர் மீண்டும் முயற்சிக்கவும்.' : 'Persistent storage is unavailable. Please try again later.')
+        : (draft.language === 'ta' ? 'சேமிக்க முடியவில்லை.' : 'Could not save the assessment.'))
       const result = await response.json() as { id: string }
       setId(result.id); setHistory([]); rememberAssessment(result.id)
-    } catch { setError(translate(draft.language, "Could not save. Check your connection and retry.")) }
+    } catch (cause) { setError(cause instanceof Error ? cause.message : translate(draft.language, "Could not save. Check your connection and retry.")) }
     finally { setBusy(false) }
   }
   async function review() {

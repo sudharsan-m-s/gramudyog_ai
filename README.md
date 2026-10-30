@@ -6,8 +6,7 @@ SIH26091: AI-Driven Hyper-Local Business Advisory and Financial Structuring Assi
 qualitative category comparison, deterministic finance simulator, save/retrieve, token-protected
 officer audit, and printable draft report are implemented. The market coverage is not a real
 survey; no actual customer counts, competitor density, or local price observations exist.
-The current persistence adapter is SQLite for local development. The PostgreSQL/PostGIS
-schema is provided but not yet connected to the API.
+Local development uses SQLite; a PostgreSQL adapter is available when a database URL is configured. Geospatial PostGIS queries are not yet integrated.
 
 ## Repository structure
 
@@ -116,8 +115,8 @@ Review and field-observation events are append-only. Each saved assessment remai
 
 ## Current limits
 
-- SQLite is the active local adapter. PostgreSQL/PostGIS migrations are prepared but not wired;
-  no geocoded 5–10 km queries or competitor map are available.
+- SQLite is the local default; a configured PostgreSQL connection supports saved records.
+  PostGIS geospatial queries and a competitor map are not implemented.
 - The Coimbatore demo provides synthetic prompts, not observed market statistics or verified
   sources. Other districts show unavailable coverage. Category costs are user assumptions.
 - Scheme defaults came from the supplied SIH brief and need confirmation against current
@@ -165,5 +164,22 @@ Location and common amount choices use dropdowns. Presets limit precision; offic
 - Audio guidance: uses a matching browser speech-synthesis voice. If Tamil speech
   is absent, the app displays a message and the visible text remains available.
 
-Field observations and saved assessments use the local SQLite adapter. There is
-no PostgreSQL adapter, account-based security, or automatic backup yet.
+Field observations and saved assessments use SQLite locally or PostgreSQL when configured.
+Account-based security and automatic backup are not implemented by this application.
+
+
+## Vercel durable storage and audio
+
+The Vercel deployment supports PostgreSQL through either DATABASE_URL or POSTGRES_URL.
+Connect a PostgreSQL resource to the project's Production environment. The first
+successful request creates three app-prefixed tables and indexes; the database user
+must have permission to create tables. Saving remains disabled when no database is
+configured or the database cannot be reached. Existing local SQLite data is not
+automatically migrated. These connection values are secrets and must only be set
+in Vercel's server-side environment settings, never in VITE_ variables.
+
+Officer review also requires OFFICER_API_TOKEN on Vercel. The shared token is only
+a prototype authorization mechanism; reviewer identities are self-reported.
+Audio uses a matching voice installed in the browser or operating system. Voice
+discovery can be asynchronous. Tamil playback requires a Tamil voice; the interface
+provides text guidance when none is available.

@@ -1,10 +1,11 @@
+import os
 from hmac import compare_digest
 
 from fastapi import APIRouter, Header, HTTPException
 
 from app.core.config import settings
 from app.domain.finance.calculator import FinanceInput, FinanceResult, calculate
-from app.repositories import local_store
+from app.repositories import local_store, postgres_store
 from app.schemas.assessment import AssessmentInput, AssessmentPreview
 from app.schemas.review import ReviewEvent, ReviewInput, SavedAssessment, SavedAssessmentInput
 from app.services.comparison import ComparisonInput, ComparisonResult, compare
@@ -24,6 +25,13 @@ def officer_authorized(authorization: str | None) -> None:
 @router.get("/health", tags=["health"])
 def health() -> dict[str, str]:
     return {"status": "ok", "service": "gramudyog-api", "stage": "development"}
+
+
+@router.get("/capabilities", tags=["health"])
+def capabilities() -> dict[str, bool]:
+    if postgres_store.database_url():
+        return {"persistent_storage": postgres_store.is_ready()}
+    return {"persistent_storage": not bool(os.environ.get("VERCEL"))}
 
 
 @router.post("/assessments/preview", response_model=AssessmentPreview, tags=["assessments"])

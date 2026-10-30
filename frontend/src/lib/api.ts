@@ -1,6 +1,6 @@
 import type { AssessmentDraft, AssessmentPreview } from '../features/intake/model'
 
-const baseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000/api/v1'
+const baseUrl = import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.PROD ? '/api/v1' : 'http://127.0.0.1:8000/api/v1')
 
 async function post<T>(path: string, body: unknown): Promise<T> {
   const response = await fetch(baseUrl + path, {
@@ -71,3 +71,9 @@ export const loadEvidence = (draft: AssessmentDraft) =>
   post<EvidenceResponse>('/evidence', draft)
 export const calculateFinance = (input: FinanceInput) =>
   post<FinanceResult>('/finance/calculate', input)
+
+export async function getCapabilities(): Promise<{ persistent_storage: boolean }> {
+  const response = await fetch(baseUrl + '/capabilities', { signal: AbortSignal.timeout(10000) })
+  if (!response.ok) throw new Error('Capabilities unavailable')
+  return response.json() as Promise<{ persistent_storage: boolean }>
+}

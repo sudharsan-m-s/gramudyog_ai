@@ -1,7 +1,7 @@
 import { AssessmentHistory, AudioGuide, BreakEven, CostBuilder, SurveyChecklist } from '../features/stage3/Tools'
 import { translate } from '../lib/translations'
 import { useEffect, useState, type FormEvent } from 'react'
-import { previewAssessment, loadEvidence, type EvidenceResponse, type FinanceResult, type FinanceInput } from '../lib/api'
+import { previewAssessment, loadEvidence, getCapabilities, type EvidenceResponse, type FinanceResult, type FinanceInput } from '../lib/api'
 import { EvidencePanel } from '../features/evidence/EvidencePanel'
 import { FinancePanel } from '../features/finance/FinancePanel'
 import { ComparisonPanel } from '../features/comparison/ComparisonPanel'
@@ -36,11 +36,18 @@ export default function App() {
   const [evidence, setEvidence] = useState<EvidenceResponse | null>(null)
   const [finance, setFinance] = useState<FinanceResult | null>(null)
   const [projectCost, setProjectCost] = useState('140000')
+  const [storageReady, setStorageReady] = useState<boolean | null>(null)
   const [restoredFinance, setRestoredFinance] = useState<FinanceInput | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [requestState, setRequestState] = useState<'idle' | 'loading' | 'error'>('idle')
   const t = copy[draft.language]
   useEffect(() => { document.documentElement.lang = draft.language }, [draft.language])
+  useEffect(() => {
+    let active = true
+    getCapabilities().then(result => { if (active) setStorageReady(result.persistent_storage) })
+      .catch(() => { if (active) setStorageReady(false) })
+    return () => { active = false }
+  }, [])
 
   function update<K extends keyof AssessmentDraft>(key: K, value: AssessmentDraft[K]) {
     setDraft(previous => ({ ...previous, [key]: value }))
@@ -111,6 +118,11 @@ export default function App() {
         <a href="/" className="text-xl font-bold tracking-tight" aria-label={draft.language === 'ta' ? 'GramUdyog AI முகப்பு' : 'GramUdyog AI home'}>GramUdyog<span className="text-emerald-700">.AI</span></a>
         <span className="rounded-full border border-emerald-900/15 px-3 py-1 text-xs font-semibold">SIH26091 · MVP</span>
       </header>
+      {storageReady === false && <p role="status" className="mx-auto max-w-5xl rounded-xl bg-amber-100 px-5 py-3 text-sm text-amber-950">
+        {draft.language === 'ta'
+          ? 'நிரந்தர சேமிப்பை அணுக முடியவில்லை. சேமிப்பும் அதிகாரி பதிவுகளும் தற்போது கிடைக்காது.'
+          : 'Persistent storage is unavailable. Saving assessments and officer records is currently disabled.'}
+      </p>}
       <main id="main" className="mx-auto max-w-5xl px-5 pb-20 pt-8 sm:px-8 sm:pt-14">
         <div className="grid gap-8 lg:grid-cols-[1fr_330px] lg:gap-16">
           <div>
