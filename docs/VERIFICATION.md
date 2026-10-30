@@ -50,3 +50,35 @@ python -m pip --python backend/.venv/Scripts/python.exe install -e "./backend[de
   focused test functions were invoked directly, including TestClient assertions.
 - No browser or physical mobile verification; the computer-use surface is unavailable.
 - Docker/PostgreSQL/PostGIS were not started. Current persistence is SQLite.
+
+
+## Stage 3 checks
+
+- Focused direct test execution passed for existing health, assessment, evidence,
+  finance, officer review and Tamil coverage, plus Stage 3 cost arithmetic,
+  break-even boundaries, officer authentication, observation dates and audit history,
+  saved original and revised snapshots, and officer CORS preflight.
+- TypeScript/Vite build and ESLint were run against a temporary dependency install.
+- Tamil speech playback, responsive browser interaction, print output and
+  screen-reader behavior could not be verified in this environment.
+- SQLite is still the active adapter. The shared officer token does not identify
+  individual users, and the entered reviewer name is self-reported.
+
+
+## Stage 3 browser and regression verification
+
+- Backend: 15 pytest tests passed; Ruff and Python compile checks passed.
+- Frontend: TypeScript/Vite production build and ESLint passed using a separate
+  temporary installation of the same project dependencies.
+- Headless Chrome at 390 x 844: keyboard skip link, intake, validation, synthetic
+  evidence, survey, cost builder, finance, break-even, category comparison,
+  officer-token rejection and authorized entry, saving two snapshots, history
+  comparison and reopening, and Tamil selection were exercised.
+- Chrome print media produced a valid PDF buffer; the print button was also
+  verified to invoke browser print. The PDF was not visually reviewed.
+- Headless desktop at 1440 x 900 and mobile Tamil result view had no horizontal
+  document overflow. An interrupted API connection displayed an error.
+- Chrome exposed speech synthesis but had no Tamil voice. The unavailable-voice
+  message was checked; actual Tamil speech playback remains unverified.
+- Tests used a separate temporary SQLite database. The existing service on port
+  5173 and the user's saved assessments were not changed.

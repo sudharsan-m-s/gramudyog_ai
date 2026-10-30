@@ -1,7 +1,7 @@
 """Indicative finance only. The LLM never participates in calculations."""
 
 import json
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
 from pydantic import BaseModel, Field, model_validator
@@ -15,10 +15,10 @@ def money(value: Decimal) -> Decimal:
 
 
 class FinanceInput(BaseModel):
-    margin_capital: Decimal = Field(ge=0, le=Decimal("5000000"), max_digits=10, decimal_places=2)
-    project_cost: Decimal = Field(gt=0, le=Decimal("100000000"), max_digits=12, decimal_places=2)
-    monthly_sales: Decimal = Field(ge=0, le=Decimal("100000000"), max_digits=12, decimal_places=2)
-    monthly_operating_cost: Decimal = Field(ge=0, le=Decimal("100000000"), max_digits=12, decimal_places=2)
+    margin_capital: Decimal = Field(ge=0, le=Decimal(5000000), max_digits=10, decimal_places=2)
+    project_cost: Decimal = Field(gt=0, le=Decimal(100000000), max_digits=12, decimal_places=2)
+    monthly_sales: Decimal = Field(ge=0, le=Decimal(100000000), max_digits=12, decimal_places=2)
+    monthly_operating_cost: Decimal = Field(ge=0, le=Decimal(100000000), max_digits=12, decimal_places=2)
     working_capital_months: int = Field(default=1, ge=1, le=12)
 
     @model_validator(mode="after")

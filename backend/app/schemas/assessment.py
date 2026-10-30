@@ -23,7 +23,7 @@ class AssessmentInput(BaseModel):
     village: str = Field(min_length=2, max_length=120)
     block: str = Field(min_length=2, max_length=120)
     district: str = Field(min_length=2, max_length=120)
-    margin_capital: Decimal = Field(gt=0, le=Decimal("5000000"), max_digits=10, decimal_places=2)
+    margin_capital: Decimal = Field(gt=0, le=Decimal(5000000), max_digits=10, decimal_places=2)
     category: Category
     radius_km: int = Field(default=5, ge=5, le=10)
 

@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from app.repositories.demo import CATEGORIES, DEMO_REGIONS, DEMO_SOURCE, SEASONALITY, SEASON_SOURCE
+from app.repositories.demo import CATEGORIES, DEMO_REGIONS, DEMO_SOURCE, SEASON_SOURCE, SEASONALITY
 from app.schemas.assessment import AssessmentInput, Category
 
 

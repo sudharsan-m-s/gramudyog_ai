@@ -17,7 +17,7 @@ def test_saved_assessment_and_officer_audit(monkeypatch):
     saved = client.post("/api/v1/assessments", json=PAYLOAD)
     assert saved.status_code == 200
     assessment_id = saved.json()["id"]
-    assert client.get(f"/api/v1/assessments/{assessment_id}").json()["payload"] == PAYLOAD
+    assert client.get(f"/api/v1/assessments/{assessment_id}").json()["payload"]["assessment"] == PAYLOAD["assessment"]
     url = f"/api/v1/officer/assessments/{assessment_id}/reviews"
     review = {"reviewer": "Field officer", "observation": "Sample channel", "correction": "Needs visit"}
     assert client.post(url, json=review).status_code == 503

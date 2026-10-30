@@ -1,10 +1,13 @@
+import { ObservationReview } from '../stage3/Tools'
+import { rememberAssessment } from '../stage3/history'
 import { translate } from '../../lib/translations'
 import { useState } from 'react'
 import type { AssessmentDraft } from '../intake/model'
+import type { FinanceResult } from '../../lib/api'
 
 const base = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000/api/v1'
 
-export function SaveAndReview({ draft }: { draft: AssessmentDraft }) {
+export function SaveAndReview({ draft, finance }: { draft: AssessmentDraft; finance: FinanceResult | null }) {
   const [id, setId] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -18,11 +21,11 @@ export function SaveAndReview({ draft }: { draft: AssessmentDraft }) {
     try {
       const response = await fetch(base + '/assessments', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ assessment: draft }), signal: AbortSignal.timeout(10000),
+        body: JSON.stringify({ assessment: draft, finance: finance?.inputs ?? null }), signal: AbortSignal.timeout(10000),
       })
       if (!response.ok) throw new Error('Save failed')
       const result = await response.json() as { id: string }
-      setId(result.id)
+      setId(result.id); setHistory([]); rememberAssessment(result.id)
     } catch { setError(translate(draft.language, "Could not save. Check your connection and retry.")) }
     finally { setBusy(false) }
   }
@@ -42,8 +45,8 @@ export function SaveAndReview({ draft }: { draft: AssessmentDraft }) {
   }
   return <section className="mt-8 border-t border-stone-200 pt-7">
     <h3 className="text-xl font-semibold">{translate(draft.language, "Save and field review")}</h3>
-    <p className="mt-2 text-sm text-stone-600">{translate(draft.language, "Only the confirmed inputs are saved. Keep the assessment ID to retrieve it. The local prototype uses a file database.")}</p>
-    <button type="button" className="primary mt-4" onClick={save} disabled={busy || Boolean(id)}>{id ? translate(draft.language, "Saved") : translate(draft.language, "Save assessment")}</button>
+    <p className="mt-2 text-sm text-stone-600">{(draft.language === 'ta' ? 'உறுதிப்படுத்திய விவரங்களும் கணக்கிட்ட நிதி உள்ளீடுகளும் சேமிக்கப்படும். மதிப்பீட்டு எண்ணைப் பாதுகாப்பாக வைத்திருங்கள்.' : 'Confirmed details and calculated financial inputs are saved. Keep the assessment ID private.')}</p>
+    <button type="button" className="primary mt-4" onClick={save} disabled={busy}>{id ? (draft.language === 'ta' ? 'புதிய பதிப்பைச் சேமிக்கவும்' : 'Save another snapshot') : translate(draft.language, "Save assessment")}</button>
     {id && <p className="mt-3 break-all text-sm">{translate(draft.language, "Assessment ID:")}<strong>{id}</strong></p>}
     {id && <details className="mt-5 rounded-xl border border-stone-200 p-4">
       <summary className="cursor-pointer font-semibold">{translate(draft.language, "Officer verification")}</summary>
@@ -64,6 +67,7 @@ export function SaveAndReview({ draft }: { draft: AssessmentDraft }) {
         {item.observation} → {item.correction}
       </li>)}</ol>}
     </details>}
+    <ObservationReview key={id} language={draft.language} assessmentId={id} />
     {error && <p role="alert" className="field-error mt-3">{error}</p>}
   </section>
 }

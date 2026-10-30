@@ -7,9 +7,9 @@ const money = (value: string) => new Intl.NumberFormat('en-IN', {
   style: 'currency', currency: 'INR', maximumFractionDigits: 2,
 }).format(Number(value))
 
-export function FinancePanel({ margin, onResult, language }: { margin: string; onResult: (result: FinanceResult | null) => void; language: Language }) {
-  const [values, setValues] = useState<FinanceInput>({
-    project_cost: '140000', margin_capital: margin,
+export function FinancePanel({ margin, onResult, language, projectCost, restored }: { margin: string; onResult: (result: FinanceResult | null) => void; language: Language; projectCost: string; restored: FinanceInput | null }) {
+  const [values, setValues] = useState<FinanceInput>(restored ?? {
+    project_cost: projectCost, margin_capital: margin,
     monthly_sales: '30000', monthly_operating_cost: '20000', working_capital_months: 1,
   })
   const [result, setResult] = useState<FinanceResult | null>(null)
@@ -43,6 +43,7 @@ export function FinancePanel({ margin, onResult, language }: { margin: string; o
         <label className="label" htmlFor={field.key}>{field.label}</label>
         <select className="input" id={field.key} required value={values[field.key]}
           onChange={event => change(field.key, event.target.value)}>
+          {!amounts.includes(Number(values[field.key])) && <option value={values[field.key]}>{money(String(values[field.key]))}</option>}
           {amounts.filter(value => field.key !== 'project_cost' || value > 0).map(value =>
             <option key={value} value={value}>{money(String(value))}</option>)}
         </select>

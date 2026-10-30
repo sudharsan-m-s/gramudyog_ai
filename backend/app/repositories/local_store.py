@@ -2,7 +2,7 @@
 
 import json
 import sqlite3
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
 
@@ -30,7 +30,7 @@ def connection() -> sqlite3.Connection:
 
 
 def save(payload: dict) -> dict:
-    record = {"id": str(uuid4()), "created_at": datetime.now(timezone.utc).isoformat(), "payload": payload}
+    record = {"id": str(uuid4()), "created_at": datetime.now(UTC).isoformat(), "payload": payload}
     with connection() as db:
         db.execute(
             "INSERT INTO assessments VALUES (?, ?, ?)",
@@ -48,7 +48,7 @@ def get(record_id: str) -> dict | None:
 def add_review(record_id: str, reviewer: str, observation: str, correction: str) -> dict:
     event = {
         "id": str(uuid4()), "assessment_id": record_id, "reviewer": reviewer,
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
         "observation": observation, "correction": correction,
     }
     with connection() as db:

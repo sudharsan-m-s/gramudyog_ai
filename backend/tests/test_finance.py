@@ -13,17 +13,17 @@ def scenario(cost: str, margin: str = "14000"):
 def test_micro_boundary_and_cap():
     below = scenario("138888.88")
     assert below.scheme == "Micro Finance Scheme"
-    assert below.indicative_loan <= Decimal("125000")
+    assert below.indicative_loan <= Decimal(125000)
     at = scenario("140000")
     assert at.scheme == "Micro Finance Scheme"
-    assert at.indicative_loan == Decimal("125000")
+    assert at.indicative_loan == Decimal(125000)
     assert at.funding_gap == Decimal("1000.00")
 
 
 def test_term_boundary_and_upper_limit():
     above = scenario("140000.01")
     assert above.scheme == "Term Loan Scheme"
-    assert scenario("5000000", "500000").indicative_loan == Decimal("4500000")
+    assert scenario("5000000", "500000").indicative_loan == Decimal(4500000)
     assert scenario("5000000.01").status == "unsupported"
 
 

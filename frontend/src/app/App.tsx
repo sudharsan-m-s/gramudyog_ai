@@ -1,6 +1,7 @@
+import { AssessmentHistory, AudioGuide, BreakEven, CostBuilder, SurveyChecklist } from '../features/stage3/Tools'
 import { translate } from '../lib/translations'
 import { useEffect, useState, type FormEvent } from 'react'
-import { previewAssessment, loadEvidence, type EvidenceResponse, type FinanceResult } from '../lib/api'
+import { previewAssessment, loadEvidence, type EvidenceResponse, type FinanceResult, type FinanceInput } from '../lib/api'
 import { EvidencePanel } from '../features/evidence/EvidencePanel'
 import { FinancePanel } from '../features/finance/FinancePanel'
 import { ComparisonPanel } from '../features/comparison/ComparisonPanel'
@@ -34,6 +35,8 @@ export default function App() {
   const [preview, setPreview] = useState<AssessmentPreview | null>(null)
   const [evidence, setEvidence] = useState<EvidenceResponse | null>(null)
   const [finance, setFinance] = useState<FinanceResult | null>(null)
+  const [projectCost, setProjectCost] = useState('140000')
+  const [restoredFinance, setRestoredFinance] = useState<FinanceInput | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [requestState, setRequestState] = useState<'idle' | 'loading' | 'error'>('idle')
   const t = copy[draft.language]
@@ -45,6 +48,8 @@ export default function App() {
     setPreview(null)
     setEvidence(null)
     setFinance(null)
+    setProjectCost('140000')
+    setRestoredFinance(null)
   }
 
   function validate() {
@@ -90,7 +95,7 @@ export default function App() {
         aria-invalid={Boolean(errors[key])} aria-describedby={errors[key] ? key + '-error' : undefined}
         onChange={event => {
           const region = regions.find(item => item[key] === event.target.value)
-          if (region) { setDraft(previous => ({ ...previous, ...region })); setErrors({}); setPreview(null); setEvidence(null); setFinance(null) }
+          if (region) { setDraft(previous => ({ ...previous, ...region })); setErrors({}); setPreview(null); setEvidence(null); setFinance(null); setProjectCost('140000'); setRestoredFinance(null) }
         }} className="input">
         <option value="">{translate(draft.language, "-- Select --")}</option>
         {regions.map(region => <option key={region.district} value={region[key]}>{translate(draft.language, region[key])}</option>)}
@@ -133,6 +138,8 @@ export default function App() {
                     </button>
                   ))}
                 </div>
+                <AudioGuide language={draft.language} />
+                <AssessmentHistory language={draft.language} onOpen={saved => { setDraft(saved.payload.assessment); setPreview(null); setEvidence(null); setFinance(null); setRestoredFinance(saved.payload.finance ?? null); setProjectCost(saved.payload.finance?.project_cost ?? '140000'); setStep('details') }} />
                 <button type="button" onClick={() => setStep('details')} className="primary mt-8">{t.start} <span aria-hidden="true">→</span></button>
               </>}
               {step === 'details' && <>
@@ -205,10 +212,16 @@ export default function App() {
                   <p className="mt-2"><strong>{t.margin}:</strong> {formatMoney(String(preview.input.margin_capital), draft.language)}</p>
                 </div>
                 {evidence && <EvidencePanel evidence={evidence} language={draft.language} />}
-                <FinancePanel key={draft.margin_capital + draft.category} margin={draft.margin_capital} onResult={setFinance} language={draft.language} />
+                <AudioGuide language={draft.language} summary={draft.language === 'ta'
+                  ? 'இவை செயற்கை மாதிரித் தகவல்கள். வாடிக்கையாளர் எண்ணிக்கை, போட்டியாளர்கள் மற்றும் உள்ளூர் விலைகள் கிடைக்கவில்லை. ' + (finance ? 'உத்தேசக் கடன் ' + finance.indicative_loan + ' ரூபாய். மாதத் தவணை ' + finance.monthly_payment + ' ரூபாய். இவை மதிப்பீடுகள் மட்டுமே; கடன் ஒப்புதல் அல்ல.' : 'நிதித் திட்டத்தைக் கணக்கிட்டு முடிவுகளை அறியவும்.')
+                  : 'These are synthetic sample observations. Customer counts, competitors, and local prices are unavailable. ' + (finance ? 'Indicative loan is ' + finance.indicative_loan + ' rupees. Monthly payment is ' + finance.monthly_payment + ' rupees. These are estimates, not loan approval.' : 'Calculate the financial plan to hear the results.')} />
+                <SurveyChecklist language={draft.language} />
+                <CostBuilder language={draft.language} onCost={value => { setProjectCost(value); setFinance(null); setRestoredFinance(null) }} />
+                <FinancePanel key={draft.margin_capital + draft.category + projectCost} margin={draft.margin_capital} onResult={setFinance} language={draft.language} projectCost={projectCost} restored={restoredFinance} />
+                <BreakEven key={finance?.monthly_payment ?? "none"} language={draft.language} debtPayment={finance?.monthly_payment ?? "0"} />
                 <ComparisonPanel key={draft.category} draft={draft} />
                 {evidence && <DraftReport draft={draft} evidence={evidence} finance={finance} />}
-                <SaveAndReview draft={draft} />
+                <SaveAndReview draft={draft} finance={finance} />
                 <p className="mt-5 text-sm text-stone-600">{t.notSaved}</p>
                 <button className="secondary mt-5" type="button" onClick={() => setStep('details')}>{t.edit}</button>
               </>}

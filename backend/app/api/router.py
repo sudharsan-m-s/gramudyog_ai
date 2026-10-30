@@ -50,7 +50,7 @@ def comparison(payload: ComparisonInput) -> ComparisonResult:
 
 @router.post("/assessments", response_model=SavedAssessment, tags=["assessments"])
 def save_assessment(payload: SavedAssessmentInput) -> dict:
-    """Save confirmed inputs only; future derived results must be recomputed."""
+    """Save input assumptions only; future derived results must be recomputed."""
     return local_store.save(payload.model_dump(mode="json"))
 
 

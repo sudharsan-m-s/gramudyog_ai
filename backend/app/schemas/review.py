@@ -1,11 +1,14 @@
 from datetime import datetime
+
 from pydantic import BaseModel, Field
 
+from app.domain.finance.calculator import FinanceInput
 from app.schemas.assessment import AssessmentInput
 
 
 class SavedAssessmentInput(BaseModel):
     assessment: AssessmentInput
+    finance: FinanceInput | None = None
 
 
 class SavedAssessment(BaseModel):
