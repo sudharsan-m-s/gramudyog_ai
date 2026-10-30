@@ -9,7 +9,7 @@
 7. Speech input/readback as progressive enhancement; complete typed fallback.
 8. Mobile, accessibility, connectivity, security and end-to-end verification.
 
-Only step 1 is implemented. The interface describes future features explicitly.
+The local MVP implements intake, sample evidence prompts, deterministic finance, comparison, save, officer audit, print draft, and optional voice. Real geospatial data, PostgreSQL adapter, production identity, and complete translations remain.
 
 ## Financial defaults to implement
 
@@ -25,3 +25,4 @@ Expose funding gaps rather than increasing loans beyond caps.
 Before schedules are implemented, explicitly define the prototype treatment of moratorium interest
 and whether moratorium falls inside or outside repayment tenure; supplied defaults do not establish it.
 Confirm official scheme documents before real use. Do not infer eligibility criteria.
+

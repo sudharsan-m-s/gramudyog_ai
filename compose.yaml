@@ -22,8 +22,11 @@ services:
     environment:
       APP_ENV: development
       CORS_ORIGINS: '["http://localhost:5173","http://127.0.0.1:5173"]'
+    volumes:
+      - api_data:/app/data
     depends_on:
       db:
         condition: service_healthy
 volumes:
   postgres_data:
+  api_data:

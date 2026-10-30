@@ -1,0 +1,21 @@
+{
+  "version": "sih26091-prototype-2026-10",
+  "source": "User-supplied SIH26091 prototype defaults; verify against current official scheme documents",
+  "margin_ratio": "0.10",
+  "finance_ratio": "0.90",
+  "micro": {
+    "max_project_cost": "140000",
+    "max_loan": "125000",
+    "annual_rate": "0.065",
+    "repayment_months": 36,
+    "moratorium_months": 3
+  },
+  "term": {
+    "min_project_cost_exclusive": "140000",
+    "max_project_cost": "5000000",
+    "max_loan": "4500000",
+    "annual_rate": "0.08",
+    "repayment_months": 84,
+    "moratorium_months": 6
+  }
+}

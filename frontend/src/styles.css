@@ -5,3 +5,18 @@ button { cursor: pointer; }
 :focus-visible { outline: 3px solid #ca8a04; outline-offset: 4px; }
 .skip-link { position: absolute; left: 1rem; top: -5rem; padding: 1rem; background: white; z-index: 10; }
 .skip-link:focus { top: 1rem; }
+.label { display: block; margin-bottom: .5rem; font-size: .875rem; font-weight: 650; }
+.input { display: block; width: 100%; min-height: 3rem; border: 1px solid #a8a29e; border-radius: .75rem; background: #fff; padding: .65rem .85rem; color: #193e33; }
+.input[aria-invalid="true"] { border-color: #b91c1c; }
+.field-error { margin-top: .4rem; color: #991b1b; font-size: .875rem; }
+.primary, .secondary { display: inline-flex; min-height: 3rem; align-items: center; justify-content: center; border-radius: .75rem; padding: .7rem 1.2rem; font-weight: 650; }
+.primary { background: #064e3b; color: white; }
+.primary:hover { background: #065f46; }
+.primary:disabled { opacity: .55; cursor: wait; }
+.secondary { border: 1px solid #a8a29e; background: white; }
+.secondary:hover { background: #f5f5f4; }
+@media print {
+  body * { visibility: hidden !important; }
+  .report-print, .report-print * { visibility: visible !important; }
+  .report-print { position: absolute; inset: 0 auto auto 0; width: 100%; border: 0; background: white; }
+}
